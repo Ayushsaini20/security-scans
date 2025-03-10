@@ -1,66 +1,104 @@
+# name: Semgrep Security Scan
+
+# on:
+#   schedule:
+#     - cron: '0 0 * * 1'  # Runs every Monday at midnight UTC
+#   workflow_dispatch:  # Allows manual execution
+
+# jobs:
+#   semgrep:
+#     runs-on: ubuntu-latest
+
+#     steps:
+#       - name: Checkout Security Repo
+#         uses: actions/checkout@v4
+
+#       - name: Install GitHub CLI
+#         run: |
+#           sudo apt update
+#           sudo apt install gh -y
+
+#       - name: Authenticate GitHub CLI
+#         run: |
+#           echo "${{ secrets.GH_PAT }}" | gh auth login --with-token
+
+#       - name: Clone Target Repositories
+#         run: |
+#           gh repo clone Ayushsaini20/100-Days-Of-Code
+#           gh repo clone Ayushsaini20/Pair_trading_in_cryptocurrency
+#           gh repo clone Ayushsaini20/HelmChart_hpa
+
+#       - name: Install Semgrep
+#         run: |
+#           pip install semgrep
+
+#       - name: Run Semgrep on Repos
+#         run: |
+#           mkdir -p reports
+          
+#           # Scan each repo and store JSON output
+#           semgrep scan --config=auto 100-Days-Of-Code/ --json > reports/100-Days-Of-Code.json || echo "Scan failed for 100-Days-Of-Code"
+#           semgrep scan --config=auto Pair_trading_in_cryptocurrency/ --json > reports/Pair_trading_in_cryptocurrency.json || echo "Scan failed for Pair_trading_in_cryptocurrency"
+#           semgrep scan --config=auto HelmChart_hpa/ --json > reports/HelmChart_hpa.json || echo "Scan failed for HelmChart_hpa"
+
+#       - name: Convert JSON Reports to Markdown
+#         run: |
+#           mkdir -p docs/reports
+#           echo "# Semgrep Security Reports" > docs/index.md
+          
+#           for repo in "100-Days-Of-Code" "Pair_trading_in_cryptocurrency" "HelmChart_hpa"; do
+#             echo "## Report for $repo" > docs/reports/$repo.md
+#             echo "\`\`\`json" >> docs/reports/$repo.md
+#             cat reports/$repo.json >> docs/reports/$repo.md
+#             echo "\`\`\`" >> docs/reports/$repo.md
+#           done
+
+#       - name: Upload Semgrep Reports
+#         uses: actions/upload-artifact@v4
+#         with:
+#           name: semgrep-reports
+#           path: reports/
+
+#       - name: Upload TechDocs Markdown Reports
+#         uses: actions/upload-artifact@v4
+#         with:
+#           name: semgrep-techdocs
+#           path: docs/
+
+
+
 name: Semgrep Security Scan
 
 on:
-  schedule:
-    - cron: '0 0 * * 1'  # Runs every Monday at midnight UTC
-  workflow_dispatch:  # Allows manual execution
+  push:
+    branches:
+      - main
+  workflow_dispatch: # Allows manual triggering
 
 jobs:
   semgrep:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout Security Repo
+      - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Install GitHub CLI
-        run: |
-          sudo apt update
-          sudo apt install gh -y
-
-      - name: Authenticate GitHub CLI
-        run: |
-          echo "${{ secrets.GH_PAT }}" | gh auth login --with-token
-
-      - name: Clone Target Repositories
-        run: |
-          gh repo clone Ayushsaini20/100-Days-Of-Code
-          gh repo clone Ayushsaini20/Pair_trading_in_cryptocurrency
-          gh repo clone Ayushsaini20/HelmChart_hpa
-
-      - name: Install Semgrep
-        run: |
-          pip install semgrep
-
-      - name: Run Semgrep on Repos
+      - name: Run Semgrep Scan
         run: |
           mkdir -p reports
-          
-          # Scan each repo and store JSON output
-          semgrep scan --config=auto 100-Days-Of-Code/ --json > reports/100-Days-Of-Code.json || echo "Scan failed for 100-Days-Of-Code"
-          semgrep scan --config=auto Pair_trading_in_cryptocurrency/ --json > reports/Pair_trading_in_cryptocurrency.json || echo "Scan failed for Pair_trading_in_cryptocurrency"
-          semgrep scan --config=auto HelmChart_hpa/ --json > reports/HelmChart_hpa.json || echo "Scan failed for HelmChart_hpa"
+          semgrep --config=auto --json > reports/semgrep_report.json
 
-      - name: Convert JSON Reports to Markdown
+      - name: Convert Semgrep JSON to Markdown
         run: |
-          mkdir -p docs/reports
-          echo "# Semgrep Security Reports" > docs/index.md
-          
-          for repo in "100-Days-Of-Code" "Pair_trading_in_cryptocurrency" "HelmChart_hpa"; do
-            echo "## Report for $repo" > docs/reports/$repo.md
-            echo "\`\`\`json" >> docs/reports/$repo.md
-            cat reports/$repo.json >> docs/reports/$repo.md
-            echo "\`\`\`" >> docs/reports/$repo.md
-          done
+          pip install jq
+          echo "# Security Report for Repo" > docs/reports/repo1.md
+          jq -r '.results[] | "- Rule: \(.check_id)\n  - File: \(.path)\n  - Message: \(.extra.message)\n"' reports/semgrep_report.json >> docs/reports/repo1.md
 
-      - name: Upload Semgrep Reports
-        uses: actions/upload-artifact@v4
-        with:
-          name: semgrep-reports
-          path: reports/
+      - name: Commit & Push Report
+        run: |
+          git config --global user.name "github-actions"
+          git config --global user.email "github-actions@github.com"
+          git add docs/reports/repo1.md
+          git commit -m "Update Semgrep report"
+          git push
 
-      - name: Upload TechDocs Markdown Reports
-        uses: actions/upload-artifact@v4
-        with:
-          name: semgrep-techdocs
-          path: docs/
