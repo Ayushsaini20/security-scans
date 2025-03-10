@@ -41,8 +41,26 @@ jobs:
           semgrep scan --config=auto Pair_trading_in_cryptocurrency/ --json > reports/Pair_trading_in_cryptocurrency.json || echo "Scan failed for Pair_trading_in_cryptocurrency"
           semgrep scan --config=auto HelmChart_hpa/ --json > reports/HelmChart_hpa.json || echo "Scan failed for HelmChart_hpa"
 
+      - name: Convert JSON Reports to Markdown
+        run: |
+          mkdir -p docs/reports
+          echo "# Semgrep Security Reports" > docs/index.md
+          
+          for repo in "100-Days-Of-Code" "Pair_trading_in_cryptocurrency" "HelmChart_hpa"; do
+            echo "## Report for $repo" > docs/reports/$repo.md
+            echo "\`\`\`json" >> docs/reports/$repo.md
+            cat reports/$repo.json >> docs/reports/$repo.md
+            echo "\`\`\`" >> docs/reports/$repo.md
+          done
+
       - name: Upload Semgrep Reports
         uses: actions/upload-artifact@v4
         with:
           name: semgrep-reports
           path: reports/
+
+      - name: Upload TechDocs Markdown Reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: semgrep-techdocs
+          path: docs/
