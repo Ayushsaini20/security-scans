@@ -24,9 +24,9 @@ jobs:
 
       - name: Clone Target Repositories
         run: |
-          gh repo clone your-org/repo1
-          gh repo clone your-org/repo2
-          gh repo clone your-org/repo3
+          gh repo clone Ayushsaini20/100-Days-Of-Code
+          gh repo clone Ayushsaini20/Pair_trading_in_cryptocurrency
+          gh repo clone Ayushsaini20/HelmChart_hpa
 
       - name: Install Semgrep
         run: |
