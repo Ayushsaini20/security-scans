@@ -34,19 +34,14 @@ jobs:
 
       - name: Run Semgrep on Repos
         run: |
-          semgrep scan --config=auto repo1/
-          semgrep scan --config=auto repo2/
-          semgrep scan --config=auto repo3/
-
-      - name: Upload Semgrep Results
-        run: |
           mkdir -p reports
-          semgrep scan --config=auto repo1/ --json > reports/repo1.json
-          semgrep scan --config=auto repo2/ --json > reports/repo2.json
-          semgrep scan --config=auto repo3/ --json > reports/repo3.json
-        continue-on-error: true
+          
+          # Scan each repo and store JSON output
+          semgrep scan --config=auto 100-Days-Of-Code/ --json > reports/100-Days-Of-Code.json || echo "Scan failed for 100-Days-Of-Code"
+          semgrep scan --config=auto Pair_trading_in_cryptocurrency/ --json > reports/Pair_trading_in_cryptocurrency.json || echo "Scan failed for Pair_trading_in_cryptocurrency"
+          semgrep scan --config=auto HelmChart_hpa/ --json > reports/HelmChart_hpa.json || echo "Scan failed for HelmChart_hpa"
 
-      - name: Upload Artifact
+      - name: Upload Semgrep Reports
         uses: actions/upload-artifact@v4
         with:
           name: semgrep-reports
