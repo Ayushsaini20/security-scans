@@ -1,0 +1,9 @@
+site_name: Semgrep Security Reports
+nav:
+  - Home: index.md
+  - Reports:
+      - Repo 1: reports/repo1.md
+      - Repo 2: reports/repo2.md
+      - Repo 3: reports/repo3.md
+plugins:
+  - techdocs-core
