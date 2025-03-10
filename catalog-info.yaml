@@ -2,9 +2,8 @@ apiVersion: backstage.io/v1alpha1
 kind: Component
 metadata:
   name: semgrep-security-reports
-  description: "Semgrep security scan results"
+  description: Semgrep security reports for multiple repositories
   annotations:
-    github.com/project-slug: Ayushsaini20/security-repo
     backstage.io/techdocs-ref: dir:.
 spec:
   type: service
